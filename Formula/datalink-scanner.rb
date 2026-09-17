@@ -8,8 +8,8 @@ class DatalinkScanner < Formula
   license "MIT"
   head "https://github.com/dhohnholt/datalink_Mac_OS_interface.git", branch: "main"
 
-  depends_on "python@3.13"
   depends_on :macos
+  depends_on "python@3.13"
 
   resource "pyserial" do
     url "https://files.pythonhosted.org/packages/1e/7d/ae3f0a63f41e4d2f6cb66a5b57197850f919f59e558159a4dd3a818f5082/pyserial-3.5.tar.gz"
@@ -61,7 +61,7 @@ class DatalinkScanner < Formula
 
     # The workspace must come up and serve its own UI without a scanner.
     port = free_port
-    pid = spawn "#{bin}/datalink-scanner", "serve", "--no-browser", "--port", port.to_s,
+    pid = spawn bin/"datalink-scanner", "serve", "--no-browser", "--port", port.to_s,
                 "--capture-dir", testpath/"captures"
     begin
       sleep 3
