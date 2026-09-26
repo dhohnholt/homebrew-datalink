@@ -3,15 +3,11 @@ class DatalinkScanner < Formula
 
   desc "macOS interface for the Apperson DataLink 1200 optical mark scanner"
   homepage "https://github.com/dhohnholt/datalink_Mac_OS_interface"
-  url "https://github.com/dhohnholt/datalink_Mac_OS_interface/archive/refs/tags/v1.9.8.tar.gz"
-  sha256 "899cd98e91b4dabfe2cc18686a5d43f5bf61056d8440f6d0be110e253dfa8fef"
+  url "https://github.com/dhohnholt/datalink_Mac_OS_interface/archive/refs/tags/v1.9.9.tar.gz"
+  sha256 "a3a48c19cd9b91a159ddceac425caa0ee88ed7245e9f40e894a5fe65f8003940"
   license "MIT"
   head "https://github.com/dhohnholt/datalink_Mac_OS_interface.git", branch: "main"
 
-  bottle do
-    root_url "https://github.com/dhohnholt/datalink_Mac_OS_interface/releases/download/v1.9.8"
-    sha256 cellar: :any, arm64_tahoe: "4ee32a1d3f91621ba62620a17b83ba9bc3bae0154a170fef81a3bc4a8f0fa660"
-  end
 
 
 
@@ -77,6 +73,29 @@ class DatalinkScanner < Formula
            "--output", prefix,
            "--version", version,
            "--icon", "src/datalink_scanner/resources/DataLinkScanner.icns"
+  end
+
+  # Every upgrade puts the app at a new Cellar path and deletes the old one.
+  # The /Applications symlink is version-independent, but LaunchServices
+  # resolves it and records the real path, so after an upgrade that record
+  # points at a directory that is gone and the Dock icon reports "The
+  # application can't be opened" -- which looks like the app is broken.
+  #
+  # Relink and re-register, but only for someone who already ran install-app:
+  # the absence of that symlink is a choice, and this does not make it for
+  # them. Nothing here may fail the upgrade, so it all runs best-effort.
+  def post_install
+    linked = Pathname.new("/Applications/DataLink Scanner.app")
+    return unless linked.symlink?
+
+    begin
+      linked.unlink
+      linked.make_symlink(opt_prefix/"DataLink Scanner.app")
+      system "/System/Library/Frameworks/CoreServices.framework/Frameworks" \
+             "/LaunchServices.framework/Support/lsregister", "-f", linked.to_s
+    rescue StandardError => e
+      opoo "Could not refresh the /Applications link: #{e}"
+    end
   end
 
   def caveats
